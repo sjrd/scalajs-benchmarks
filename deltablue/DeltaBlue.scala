@@ -45,7 +45,58 @@ package benchmarks.deltablue
  * implementation.
  */
 
-import scala.collection.mutable.ArrayBuffer
+import scala.scalajs.js
+
+class OrderedCollection[A] {
+  private[this] val elms = new js.Array[A]
+
+  def apply(index: Int): A = elms(index)
+  def size: Int = elms.length.toInt
+  def length: Int = elms.length.toInt
+
+  def removeFirst(): A = elms.pop()
+
+  def +=(elm: A): Unit = elms.push(elm)
+
+  def -=(elm: A): Unit = {
+    var index = 0
+    var skipped = 0
+    var i = 0
+    while (i < elms.length) {
+      val value = elms(i)
+      if (value != elm) {
+        elms(i) = value
+        index += 1
+      } else {
+        skipped += 1
+      }
+      i += 1
+    }
+    i = 0
+    while (i < skipped) {
+      elms.pop()
+      i += 1
+    }
+  }
+
+  def foreach[U](f: A => U): Unit = {
+    var i = 0
+    while (i < elms.length) {
+      f(elms(i))
+      i += 1
+    }
+  }
+}
+
+object OrderedCollection {
+  def apply[A](): OrderedCollection[A] = new OrderedCollection[A]
+
+  def apply[A](elm: A): OrderedCollection[A] = {
+    val result = new OrderedCollection[A]
+    result += elm
+    result
+  }
+}
 
 class DeltaBlue extends benchmarks.Benchmark {
 
@@ -76,25 +127,29 @@ class DeltaBlue extends benchmarks.Benchmark {
     var last: Variable = null
 
     // Build chain of n equality constraints.
-    for (i <- 0 to n) {
+    var i = 0
+    while (i <= n) {
       val v = new Variable("v", 0)
       if (prev != null) new EqualityConstraint(prev, v, REQUIRED)
       if (i == 0) first = v
       if (i == n) last = v
       prev = v
+      i += 1
     }
     new StayConstraint(last, STRONG_DEFAULT)
     val edit = new EditConstraint(first, PREFERRED)
-    val plan = planner.extractPlanFromConstraints(ArrayBuffer(edit))
-    for (i <- 0 until 100) {
+    val plan = planner.extractPlanFromConstraints(OrderedCollection(edit))
+    i = 0
+    while (i < 100) {
       first.value = i
       plan.execute()
       if (last.value != i) {
         print("Chain test failed.\n{last.value)\n{i}")
       }
+      i += 1
     }
   }
-  
+
   /**
    * This test constructs a two sets of variables related to each
    * other by a simple linear transformation (scale and offset). The
@@ -107,35 +162,43 @@ class DeltaBlue extends benchmarks.Benchmark {
     val offset = new Variable("offset", 1000)
     var src: Variable = null
     var dst: Variable = null
-  
-    val dests = ArrayBuffer[Variable]()
-    for (i <- 0 until n) {
+
+    val dests = OrderedCollection[Variable]()
+    var i = 0
+    while (i < n) {
       src = new Variable("src", i)
       dst = new Variable("dst", i)
       dests += dst
       new StayConstraint(src, NORMAL)
       new ScaleConstraint(src, scale, offset, dst, REQUIRED)
+      i += 1
     }
     change(src, 17)
     if (dst.value != 1170) print("Projection 1 failed")
     change(dst, 1050)
     if (src.value != 5) print("Projection 2 failed")
     change(scale, 5)
-    for (i <- 0 until n - 1) {
+    i = 0
+    while (i < n - 1) {
       if (dests(i).value != i * 5 + 1000) print("Projection 3 failed")
+      i += 1
     }
     change(offset, 2000)
-    for (i <- 0 until n - 1) {
+    i = 0
+    while (i < n - 1) {
       if (dests(i).value != i * 5 + 2000) print("Projection 4 failed")
+      i += 1
     }
   }
-  
+
   def change(v: Variable, newValue: Int)(implicit planner: Planner)  {
     val edit = new EditConstraint(v, PREFERRED)
-    val plan = planner.extractPlanFromConstraints(ArrayBuffer(edit))
-    for (i <- 0 until 10) {
+    val plan = planner.extractPlanFromConstraints(OrderedCollection(edit))
+    var i = 0
+    while (i < 10) {
       v.value = newValue
       plan.execute()
+      i += 1
     }
     edit.destroyConstraint
   }
@@ -504,7 +567,7 @@ class EqualityConstraint(v1: Variable, v2: Variable, strength: Strength)(implici
  **/
 class Variable(val name: String, var value: Int) {
 
-  val constraints = ArrayBuffer[Constraint]()
+  val constraints = OrderedCollection[Constraint]()
   var determinedBy: Constraint = null
   var mark = 0
   var walkStrength: Strength = WEAKEST
@@ -601,12 +664,12 @@ class Planner {
    * any constraint.
    * Assume: [sources] are all satisfied.
    */
-  def makePlan(sources: ArrayBuffer[Constraint]) = {
+  def makePlan(sources: OrderedCollection[Constraint]) = {
     val mark = newMark()
     val plan = new Plan()
     val todo = sources
     while (todo.length > 0) {
-      val c = todo.remove(todo.size - 1)
+      val c = todo.removeFirst()
       if (c.output().mark != mark && c.inputsKnown(mark)) {
         plan.addConstraint(c)
         c.output().mark = mark
@@ -620,8 +683,8 @@ class Planner {
    * Extract a plan for resatisfying starting from the output of the
    * given [constraints], usually a set of input constraints.
    */
-  def extractPlanFromConstraints(constraints: Seq[Constraint]) = {
-    val sources = ArrayBuffer[Constraint]()
+  def extractPlanFromConstraints(constraints: OrderedCollection[Constraint]) = {
+    val sources = OrderedCollection[Constraint]()
     for (c <- constraints) {
       // if not in plan already and eligible for inclusion.
       if (c.isInput && c.isSatisfied()) sources += c
@@ -643,9 +706,9 @@ class Planner {
    * constraint's output to one of its inputs.
    */
   def addPropagate(c: Constraint, mark: Int): Boolean = {
-    val todo = ArrayBuffer[Constraint](c)
+    val todo = OrderedCollection[Constraint](c)
     while (todo.length > 0) {
-      val d = todo.remove(todo.size - 1)
+      val d = todo.removeFirst()
       if (d.output().mark == mark) {
         incrementalRemove(c)
         return false
@@ -661,14 +724,14 @@ class Planner {
    * downstream of the given constraint. Answer a collection of
    * unsatisfied constraints sorted in order of decreasing strength.
    */
-  def removePropagateFrom(out: Variable): Seq[Constraint] = {
+  def removePropagateFrom(out: Variable): OrderedCollection[Constraint] = {
     out.determinedBy = null
     out.walkStrength = WEAKEST
     out.stay = true
-    val unsatisfied = ArrayBuffer[Constraint]()
-    val todo = ArrayBuffer[Variable](out)
+    val unsatisfied = OrderedCollection[Constraint]()
+    val todo = OrderedCollection[Variable](out)
     while (todo.length > 0) {
-      val v = todo.remove(todo.size - 1)
+      val v = todo.removeFirst()
       for (c <- v.constraints) {
         if (!c.isSatisfied()) unsatisfied += c
       }
@@ -683,10 +746,10 @@ class Planner {
     unsatisfied
   }
 
-  def addConstraintsConsumingTo(v: Variable, coll: ArrayBuffer[Constraint]) {
+  def addConstraintsConsumingTo(v: Variable, coll: OrderedCollection[Constraint]) {
     val determining = v.determinedBy
     for (c <- v.constraints) {
-      if (c != determining && c.isSatisfied()) coll +=c 
+      if (c != determining && c.isSatisfied()) coll +=c
     }
   }
 }
@@ -698,7 +761,7 @@ class Planner {
  * one or more changing inputs.
  */
 class Plan {
-  private val list = ArrayBuffer[Constraint]()
+  private val list = OrderedCollection[Constraint]()
 
   def addConstraint(c: Constraint) {
     list += c
