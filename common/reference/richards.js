@@ -35,14 +35,6 @@
 // Martin Richards.
 
 
-(function(scope, benchmarks) {
-  scope[benchmarks] = scope[benchmarks] || [];
-  scope[benchmarks] = function() {
-    Benchmark.report("Richards", runRichards, runRichards);
-  };
-})(typeof global === 'object' ? global : this, 'runScalaJSBenchmarks');
-
-
 /**
  * The Richards benchmark simulates the task dispatcher of an
  * operating system.
@@ -540,3 +532,6 @@ Packet.prototype.addTo = function (queue) {
 Packet.prototype.toString = function () {
   return "Packet";
 };
+
+// Run the benchmark
+Benchmark.report("Richards", runRichards, runRichards);

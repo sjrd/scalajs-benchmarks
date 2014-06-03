@@ -7,7 +7,7 @@ import ScalaJSKeys._
 
 object ScalaJSBenchmarks extends Build {
 
-  val scalaJSScalaVersion = "2.10.2"
+  val scalaJSScalaVersion = "2.11.1"
 
   val projectSettings = Defaults.defaultSettings ++ Seq(
       organization := "scalajs-benchmarks",
@@ -21,12 +21,8 @@ object ScalaJSBenchmarks extends Build {
           "-unchecked",
           "-feature",
           "-encoding", "utf8"
-      )
-  )
-
-  lazy val benchmarkSettings = defaultSettings ++ Seq(
-      unmanagedSources in (Compile, packageJS) +=
-          baseDirectory.value / "exports.js"
+      ),
+      persistLauncher := true
   )
 
   lazy val parent: Project = Project(
@@ -53,10 +49,10 @@ object ScalaJSBenchmarks extends Build {
   )
 
   lazy val common = project("Common", defaultSettings)
-  lazy val deltablue = project("DeltaBlue", benchmarkSettings).dependsOn(common)
-  lazy val richards = project("Richards", benchmarkSettings).dependsOn(common)
-  lazy val sudoku = project("Sudoku", benchmarkSettings).dependsOn(common)
-  lazy val tracer = project("Tracer", benchmarkSettings).dependsOn(common)
+  lazy val deltablue = project("DeltaBlue", defaultSettings).dependsOn(common)
+  lazy val richards = project("Richards", defaultSettings).dependsOn(common)
+  lazy val sudoku = project("Sudoku", defaultSettings).dependsOn(common)
+  lazy val tracer = project("Tracer", defaultSettings).dependsOn(common)
 
   def project(id: String, settings: Seq[sbt.Def.Setting[_]]) = Project(
       id = id.toLowerCase,

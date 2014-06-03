@@ -31,7 +31,7 @@ trait BenchmarkApp {
     if (timeElement != null) {
       val elapsedTime = after.getTime() - before.getTime()
 
-      timeElement.innerHTML = elapsedTime.toString(10)
+      timeElement.innerHTML = elapsedTime.toString()
     }
   }
 

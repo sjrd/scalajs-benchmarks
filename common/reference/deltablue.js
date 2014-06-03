@@ -23,14 +23,6 @@
 // more like a JavaScript program.
 
 
-(function(scope, benchmarks) {
-  scope[benchmarks] = scope[benchmarks] || [];
-  scope[benchmarks] = function() {
-    Benchmark.report('DeltaBlue', deltaBlue, deltaBlue);
-  };
-})(typeof global === 'object' ? global : this, 'runScalaJSBenchmarks');
-
-
 /**
  * A JavaScript implementation of the DeltaBlue constraint-solving
  * algorithm, as described in:
@@ -881,3 +873,6 @@ function deltaBlue() {
   chainTest(100);
   projectionTest(100);
 }
+
+// Run the benchmark
+Benchmark.report('DeltaBlue', deltaBlue, deltaBlue);

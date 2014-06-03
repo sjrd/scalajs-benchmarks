@@ -10,9 +10,6 @@
  * Run one or more benchmarks.
  */
 
-var globalScope = (typeof global === 'object') ? global : this;
-globalScope['runScalaJSBenchmarks']();
-
 if (typeof phantom === 'object') {
   phantom.exit();
 }

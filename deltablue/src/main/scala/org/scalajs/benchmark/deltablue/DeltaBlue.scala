@@ -51,6 +51,10 @@ object DeltaBlue extends org.scalajs.benchmark.Benchmark {
 
   override def prefix = "DeltaBlue"
 
+  def runBenchmark() {
+    super.report();
+  }
+
   def run {
     chainTest(100)
     projectionTest(100)

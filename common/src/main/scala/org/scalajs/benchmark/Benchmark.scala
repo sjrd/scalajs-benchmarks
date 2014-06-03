@@ -10,14 +10,12 @@ package org.scalajs.benchmark
 
 import scala.compat.Platform
 import scala.scalajs.js
+import scala.scalajs.js.annotation.JSExport
 
+@JSExport
 object Benchmark {
   val benchmarks = js.Array[Benchmark]()
   val benchmarkApps = js.Array[BenchmarkApp]()
-
-  val global = js.Dynamic.global.asInstanceOf[js.Dictionary[js.Any]]
-  global("runScalaJSBenchmarks") = runBenchmarks _
-  global("initScalaJSBenchmarkApps") = initBenchmarkApps _
 
   def add(benchmark: Benchmark) {
     benchmarks.push(benchmark)
@@ -26,10 +24,12 @@ object Benchmark {
     }
   }
 
+  @JSExport
   def runBenchmarks() {
     benchmarks.foreach { _.report }
   }
 
+  @JSExport
   def initBenchmarkApps() {
     benchmarkApps.foreach { _.init }
   }
@@ -45,9 +45,9 @@ object Benchmark {
  *
  *  @author Iulian Dragos, Burak Emir
  */
-abstract class Benchmark {
+abstract class Benchmark extends js.JSApp {
 
-  Benchmark.add(this)
+  def main(): Unit = report()
 
   /** This method should be implemented by the concrete benchmark.
    *  It will be called by the benchmarking code for a number of times.
@@ -99,6 +99,7 @@ abstract class Benchmark {
     runBenchmark(100)
   }
 
+  @JSExport
   def report() {
     setUp
     warmUp

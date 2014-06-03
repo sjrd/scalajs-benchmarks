@@ -12,9 +12,9 @@
 # set -x
 
 RUN_DIR="$(dirname "$0")"
-ROOT_DIR="./$(git rev-parse --show-cdup)" 
+ROOT_DIR="./$(git rev-parse --show-cdup)"
 ENGINES="d8 node"
-MODES="dev opt js"
+MODES="pack fastopt fullopt js"
 SEP='
 '
 
@@ -78,7 +78,7 @@ detect_engines()
 run_benchmark_mode()
 {
 	engine="$1" benchmark="$2" mode="$3"
-	out_dir="$ROOT_DIR/$benchmark/target/scala-2.10"
+	out_dir="$ROOT_DIR/$benchmark/target/scala-2.11"
 	lib_dir="$ROOT_DIR/common"
 	js="$out_dir/$benchmark.$engine-$mode.js"
 	engine_bin=$(eval echo \$"${engine}_bin")
@@ -89,18 +89,23 @@ run_benchmark_mode()
 		test -e "$lib_dir/$engine-stubs.js" &&
 			cat "$lib_dir/$engine-stubs.js"
 		case "$mode" in
-		js)	cat "$lib_dir/reference/bench.js" \
-			    "$lib_dir/reference/$benchmark.js" ;;
-		opt)	cat "$out_dir/$benchmark-opt.js" ;;
-		dev)	cat "$out_dir/$benchmark-extdeps.js" \
-			    "$out_dir/$benchmark-intdeps.js" \
-			    "$out_dir/$benchmark.js" ;;
-		*)	die "Unknown mode: $mode"
+		js)		cat "$lib_dir/reference/bench.js" \
+				    "$lib_dir/reference/$benchmark.js" ;;
+		fullopt)	cat "$out_dir/$benchmark-opt.js" \
+				    "$out_dir/$benchmark-launcher.js" ;;
+		fastopt)	cat "$out_dir/$benchmark-fastopt.js" \
+				    "$out_dir/$benchmark-launcher.js" ;;
+		pack)		cat "$out_dir/corejslibs.js" \
+				    "$out_dir/$benchmark-pack-extdeps.js" \
+				    "$out_dir/$benchmark-pack-intdeps.js" \
+				    "$out_dir/$benchmark-pack-app.js" \
+				    "$out_dir/$benchmark-launcher.js" ;;
+		*)		die "Unknown mode: $mode"
 		esac
 		cat "$lib_dir/start-benchmark.js"
 	} > "$js"
 
-	info "$benchmark [$mode] $engine" 
+	info "$benchmark [$mode] $engine"
 	# Remove benchmark prefix (e.g. DeltaBlue:) and squelch
 	# PhantomJS warning
 	"$engine_bin" "$js" 2>&1 | sed 's/[^:]*:\s//' | grep -v phantomjs
@@ -117,7 +122,7 @@ run_benchmark()
 		arg="$1"; shift
 
 		case "$arg" in
-		dev|opt|js)
+		pack|fastopt|fullopt|js)
 			modes="$modes$SEP$arg" ;;
 		d8|node|phantomjs)
 			engines="$engines$SEP$arg" ;;
@@ -129,14 +134,14 @@ run_benchmark()
 	test -z "$engines" && engines="d8" ||
 		engines="$(echo "$engines" | sort -u)"
 
-	test -z "$modes" && modes="dev" ||
+	test -z "$modes" && modes="pack" ||
 		modes="$(echo "$modes" | sort -u)"
 
 	detect_engines "$engines"
 
 	for mode in $modes; do
 		for engine in $engines; do
-			run_benchmark_mode "$engine" "$benchmark" "$mode" 
+			run_benchmark_mode "$engine" "$benchmark" "$mode"
 		done
 	done
 }
