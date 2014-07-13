@@ -45,7 +45,7 @@ package org.scalajs.benchmark.deltablue
  * implementation.
  */
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer, Stack}
 
 object DeltaBlue extends org.scalajs.benchmark.Benchmark {
 
@@ -89,7 +89,7 @@ object DeltaBlue extends org.scalajs.benchmark.Benchmark {
     }
     new StayConstraint(last, STRONG_DEFAULT)
     val edit = new EditConstraint(first, PREFERRED)
-    val plan = planner.extractPlanFromConstraints(ArrayBuffer(edit))
+    val plan = planner.extractPlanFromConstraints(Seq(edit))
     for (i <- 0 until 100) {
       first.value = i
       plan.execute()
@@ -112,7 +112,7 @@ object DeltaBlue extends org.scalajs.benchmark.Benchmark {
     var src: Variable = null
     var dst: Variable = null
 
-    val dests = ArrayBuffer[Variable]()
+    val dests = new ArrayBuffer[Variable](n)
     for (i <- 0 until n) {
       src = new Variable("src", i)
       dst = new Variable("dst", i)
@@ -136,7 +136,7 @@ object DeltaBlue extends org.scalajs.benchmark.Benchmark {
 
   def change(v: Variable, newValue: Int)(implicit planner: Planner) {
     val edit = new EditConstraint(v, PREFERRED)
-    val plan = planner.extractPlanFromConstraints(ArrayBuffer(edit))
+    val plan = planner.extractPlanFromConstraints(Seq(edit))
     for (i <- 0 until 10) {
       v.value = newValue
       plan.execute()
@@ -500,7 +500,7 @@ class EqualityConstraint(v1: Variable, v2: Variable, strength: Strength)(implici
  */
 class Variable(val name: String, var value: Int) {
 
-  val constraints = ArrayBuffer[Constraint]()
+  val constraints = new ListBuffer[Constraint]()
   var determinedBy: Constraint = null
   var mark = 0
   var walkStrength: Strength = WEAKEST
@@ -596,12 +596,12 @@ class Planner {
    * any constraint.
    * Assume: [sources] are all satisfied.
    */
-  def makePlan(sources: ArrayBuffer[Constraint]) = {
+  def makePlan(sources: Stack[Constraint]) = {
     val mark = newMark()
     val plan = new Plan()
     val todo = sources
-    while (todo.length > 0) {
-      val c = todo.remove(todo.size - 1)
+    while (!todo.isEmpty) {
+      val c = todo.pop()
       if (c.output().mark != mark && c.inputsKnown(mark)) {
         plan.addConstraint(c)
         c.output().mark = mark
@@ -616,10 +616,10 @@ class Planner {
    * given [constraints], usually a set of input constraints.
    */
   def extractPlanFromConstraints(constraints: Seq[Constraint]) = {
-    val sources = ArrayBuffer[Constraint]()
+    val sources = new Stack[Constraint]()
     for (c <- constraints) {
       // if not in plan already and eligible for inclusion.
-      if (c.isInput && c.isSatisfied()) sources += c
+      if (c.isInput && c.isSatisfied()) sources.push(c)
     }
     makePlan(sources)
   }
@@ -638,9 +638,9 @@ class Planner {
    * constraint's output to one of its inputs.
    */
   def addPropagate(c: Constraint, mark: Int): Boolean = {
-    val todo = ArrayBuffer[Constraint](c)
-    while (todo.length > 0) {
-      val d = todo.remove(todo.size - 1)
+    val todo = new Stack[Constraint]().push(c)
+    while (!todo.isEmpty) {
+      val d = todo.pop()
       if (d.output().mark == mark) {
         incrementalRemove(c)
         return false
@@ -660,10 +660,10 @@ class Planner {
     out.determinedBy = null
     out.walkStrength = WEAKEST
     out.stay = true
-    val unsatisfied = ArrayBuffer[Constraint]()
-    val todo = ArrayBuffer[Variable](out)
-    while (todo.length > 0) {
-      val v = todo.remove(todo.size - 1)
+    val unsatisfied = new ListBuffer[Constraint]()
+    val todo = new Stack[Variable]().push(out)
+    while (!todo.isEmpty) {
+      val v = todo.pop()
       for (c <- v.constraints) {
         if (!c.isSatisfied()) unsatisfied += c
       }
@@ -671,17 +671,17 @@ class Planner {
       for (next <- v.constraints) {
         if (next != determining && next.isSatisfied()) {
           next.recalculate()
-          todo += next.output()
+          todo.push(next.output())
         }
       }
     }
     unsatisfied
   }
 
-  def addConstraintsConsumingTo(v: Variable, coll: ArrayBuffer[Constraint]) {
+  def addConstraintsConsumingTo(v: Variable, coll: Stack[Constraint]) {
     val determining = v.determinedBy
     for (c <- v.constraints) {
-      if (c != determining && c.isSatisfied()) coll += c
+      if (c != determining && c.isSatisfied()) coll.push(c)
     }
   }
 }
@@ -692,13 +692,11 @@ class Planner {
  * one or more changing inputs.
  */
 class Plan {
-  private val list = ArrayBuffer[Constraint]()
+  private val list = new ListBuffer[Constraint]()
 
   def addConstraint(c: Constraint) {
     list += c
   }
-
-  def size() = list.length
 
   def execute() {
     for (constraint <- list) {
