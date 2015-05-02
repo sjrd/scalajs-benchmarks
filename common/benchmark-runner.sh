@@ -13,8 +13,9 @@
 
 RUN_DIR="$(dirname "$0")"
 ROOT_DIR="./$(git rev-parse --show-cdup)"
-ENGINES="d8 node"
-MODES="fastopt fullopt js"
+#ENGINES="d8 node"
+ENGINES=iojs
+MODES="fastopt fullopt es6 strongmode js"
 SEP='
 '
 
@@ -62,6 +63,7 @@ detect_engine()
 	case "$engine" in
 	d8)	find_binary "-e print(version())" d8 ;;
 	node)	find_binary "-v" node nodejs js ;;
+	iojs)   find_binary "-v" iojs ;;
 	phantomjs)
 		find_binary "-v" phantomjs ;;
 	*)	die "Unknown engine: $engine"
@@ -95,15 +97,24 @@ run_benchmark_mode()
 				    "$out_dir/$benchmark-launcher.js" ;;
 		fastopt)	cat "$out_dir/$benchmark-fastopt.js" \
 				    "$out_dir/$benchmark-launcher.js" ;;
+		es6)    	cat "$out_dir/$benchmark-es6.js" \
+				    "$out_dir/$benchmark-launcher.js" ;;
+		strongmode)	cat "$out_dir/$benchmark-strongmode.js" \
+				    "$out_dir/$benchmark-launcher.js" ;;
 		*)		die "Unknown mode: $mode"
 		esac
 		cat "$lib_dir/start-benchmark.js"
 	} > "$js"
 
+	case "$engine" in
+	iojs) engine_opts="--harmony-rest-parameters --strong-mode" ;;
+        *)    engine_opts=""
+	esac
+
 	info "$benchmark [$mode] $engine"
 	# Remove benchmark prefix (e.g. DeltaBlue:) and squelch
 	# PhantomJS warning
-	"$engine_bin" "$js" 2>&1 | sed 's/[^:]*:\s//' | grep -v phantomjs
+	"$engine_bin" $engine_opts "$js" 2>&1 | sed 's/[^:]*:\s//' | grep -v phantomjs
 }
 
 run_benchmark()

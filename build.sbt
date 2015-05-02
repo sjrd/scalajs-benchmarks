@@ -1,4 +1,7 @@
 import org.scalajs.core.tools.sem.CheckedBehavior.Unchecked
+import org.scalajs.core.tools.javascript.OutputMode
+
+scalaJSOutputMode in Global := OutputMode.ECMAScript51Isolated
 
 val projectSettings = Seq(
   organization := "scalajs-benchmarks",
@@ -6,7 +9,7 @@ val projectSettings = Seq(
 )
 
 val defaultSettings = projectSettings ++ Seq(
-  scalaVersion := "2.11.5",
+  scalaVersion := "2.11.6",
   scalacOptions ++= Seq(
       "-deprecation",
       "-unchecked",
@@ -14,7 +17,19 @@ val defaultSettings = projectSettings ++ Seq(
       "-encoding", "utf8"
   ),
   scalaJSSemantics ~= { _.withAsInstanceOfs(Unchecked) },
-  persistLauncher := true
+  persistLauncher := true,
+
+  scalaJSOutputMode := (scalaJSOutputMode in Global).value,
+
+  artifactPath in (Compile, fastOptJS) := {
+    val suffix = scalaJSOutputMode.value match {
+      case OutputMode.ECMAScript6 => "es6"
+      case OutputMode.ECMAScript6StrongMode => "strongmode"
+      case _ => "fastopt"
+    }
+    ((crossTarget in (Compile, fastOptJS)).value /
+        (moduleName.value + "-" + suffix + ".js"))
+  }
 )
 
 lazy val parent = project.in(file(".")).
