@@ -57,6 +57,15 @@ lazy val richards = project.
   ).
   dependsOn(common)
 
+lazy val splay = project.
+  enablePlugins(ScalaJSPlugin).
+  settings(defaultSettings: _*).
+  settings(
+    name := s"Scala.js Benchmarks - Splay",
+    moduleName := "splay"
+  ).
+  dependsOn(common)
+
 lazy val sudoku = project.
   enablePlugins(ScalaJSPlugin).
   settings(defaultSettings: _*).

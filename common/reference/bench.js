@@ -1,36 +1,46 @@
 /*
- * Copyright 2012 Google Inc. All Rights Reserved.
+ * Pure JS Benchmark implementation  of org.scalajs.benchmark.Benchmark
  *
- * Copied 2013-10-27 from https://github.com/dart-lang/benchmark_harness
+ * @author Nicolas Stucki
  */
 
-var Benchmark = {
-  measureFor: function(f, timeMinimum) {
-    var elapsed = 0;
-    var iterations = 0;
+Benchmark = function(prefix, run, setUp, tearDown) {
+  this.prefix = prefix;
+  this.minWarmUpTime = 100;
+  this.minRunTime = 2000;
+  this.run = run;
+  if (!setUp)
+    setUp = function () {};
+  this.setUp = setUp;
+  if (!tearDown)
+    tearDown = function () {};
+  this.tearDown = tearDown;
+};
+
+Benchmark.prototype.runBenchmark = function(timeMinimum) {
+  var runs = 0;
+  var elapsed = 0;
+  while (elapsed < timeMinimum) {
+    runs++;
+    this.setUp();
     var start = new Date();
-    while (elapsed < timeMinimum) {
-      iterations++;
-      f();
-      elapsed = new Date() - start;
-    }
-    return 1000 * elapsed / iterations;
-  },
-
-  measure: function(warmup, exercise) {
-    if (!exercise) {
-      exercise = function() {
-        for (var i = 0; i < 10; i++) {
-          warmup();
-        }
-      };
-    }
-    this.measureFor(warmup, 100);
-    return this.measureFor(exercise, 2000);
-  },
-
-  report: function(name, warmup, exercise) {
-    var score = this.measure(warmup, exercise);
-    console.log(name + "(RunTime): " + score + " us");
+    this.run();
+    var end = new Date();
+    this.tearDown();
+    elapsed += end - start;
   }
+  return {
+    avg: 1000 * elapsed / runs,
+    runs: runs
+  };
+}
+
+Benchmark.prototype.warmUp = function() {
+  this.runBenchmark(this.minWarmUpTime);
+};
+
+Benchmark.prototype.report = function() {
+  this.warmUp();
+  var result = this.runBenchmark(this.minRunTime);
+  console.log(this.prefix + ": " + result.avg + " us (" + result.runs + " runs)");
 };

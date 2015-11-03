@@ -33,30 +33,36 @@ abstract class Benchmark extends js.JSApp {
    */
   def run()
 
+  def minWarmUpTime: Int = 100
+
+  def minRunTime: Int = 2000
+
   /** Run the benchmark the specified number of milliseconds and return
    *  the average execution time in microseconds.
    */
-  def runBenchmark(timeMinimum: Long): Double = {
+  @noinline
+  def runBenchmark(timeMinimum: Int): (Double, Int) = {
     var runs = 0
-    val startTime = Platform.currentTime
-    var stopTime = startTime + timeMinimum
-    var currentTime = startTime
+    var elapsed = 0L
 
     do {
+      setUp()
+      val runStartTime = Platform.currentTime
       run()
+      val runEndTime = Platform.currentTime
+      tearDown()
+      elapsed += runEndTime - runStartTime
       runs += 1
-      currentTime = Platform.currentTime
-    } while (currentTime < stopTime)
+    } while (elapsed < timeMinimum)
 
-    val elapsed = currentTime - startTime
-    1000.0 * elapsed / runs
+    (1000.0 * elapsed / runs, runs)
   }
 
   /** Prepare any data needed by the benchmark, but whose execution time
    *  should not be measured. This method is run before each call to the
    *  benchmark payload, 'run'.
    */
-  def setUp() {}
+  def setUp(): Unit = ()
 
   /** Perform cleanup operations after each 'run'. For micro benchmarks,
    *  think about using the result of 'run' in a way that prevents the JVM
@@ -64,23 +70,20 @@ abstract class Benchmark extends js.JSApp {
    *  write the results to a file. The execution time of this method is not
    *  measured.
    */
-  def tearDown() {}
+  def tearDown(): Unit = ()
 
   /** A string that is written at the beginning of the output line
    *  that contains the timings. By default, this is the class name.
    */
   def prefix: String = getClass().getName()
 
-  def warmUp {
-    runBenchmark(100)
+  def warmUp(): Unit = {
+    runBenchmark(minWarmUpTime)
   }
 
-  def report() {
-    setUp
-    warmUp
-    val avg = runBenchmark(2000)
-    tearDown
-
-    println(s"$prefix: $avg us")
+  def report(): Unit = {
+    warmUp()
+    val (avg, runs) = runBenchmark(minRunTime)
+    println(s"$prefix: $avg us ($runs runs)")
   }
 }
