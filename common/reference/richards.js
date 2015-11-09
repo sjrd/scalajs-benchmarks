@@ -534,4 +534,5 @@ Packet.prototype.toString = function () {
 };
 
 // Run the benchmark
-Benchmark.report("Richards", runRichards, runRichards);
+var benchmark = new Benchmark("Richards", runRichards);
+benchmark.report();

@@ -900,4 +900,5 @@ function renderScene(){
 }
 
 // Run the benchmark
-Benchmark.report("Tracer", renderScene, renderScene);
+var benchmark = new Benchmark("Tracer", renderScene);
+benchmark.report();

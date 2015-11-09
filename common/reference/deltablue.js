@@ -875,4 +875,5 @@ function deltaBlue() {
 }
 
 // Run the benchmark
-Benchmark.report('DeltaBlue', deltaBlue, deltaBlue);
+var benchmark = new Benchmark('DeltaBlue', deltaBlue);
+benchmark.report();

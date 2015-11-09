@@ -6,7 +6,7 @@ val projectSettings = Seq(
 )
 
 val defaultSettings = projectSettings ++ Seq(
-  scalaVersion := "2.11.6",
+  scalaVersion := "2.11.7",
   scalacOptions ++= Seq(
       "-deprecation",
       "-unchecked",
@@ -54,6 +54,15 @@ lazy val richards = project.
   settings(
     name := s"Scala.js Benchmarks - Richards",
     moduleName := "richards"
+  ).
+  dependsOn(common)
+
+lazy val splay = project.
+  enablePlugins(ScalaJSPlugin).
+  settings(defaultSettings: _*).
+  settings(
+    name := s"Scala.js Benchmarks - Splay",
+    moduleName := "splay"
   ).
   dependsOn(common)
 
