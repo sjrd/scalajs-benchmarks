@@ -45,14 +45,23 @@
 
 package org.scalajs.benchmark.richards
 
-/**
- * Richards simulates the task dispatcher of an operating system.
+import org.scalajs.benchmark._
+
+import scalajs.js
+import scalajs.js.annotation.JSExport
+
+/** Richards simulates the task dispatcher of an operating system.
  */
-object Richards extends org.scalajs.benchmark.Benchmark {
+object Richards extends js.JSApp {
 
-  override def prefix = "Richards"
+  @JSExport
+  def main(): Unit = {
+    val benchmarks = js.Array(
+      new Benchmark("Richards", true, false, 8200, runRichards _))
+    new BenchmarkSuite("Richards", js.Array(35302), benchmarks)
+  }
 
-  def run() {
+  def runRichards(): Unit = {
     val scheduler = new Scheduler()
     scheduler.addIdleTask(ID_IDLE, 0, null, COUNT)
 
@@ -91,12 +100,11 @@ object Richards extends org.scalajs.benchmark.Benchmark {
   final val DATA_SIZE = 4
   final val COUNT = 1000
 
-  /**
-   * These two constants specify how many times a packet is queued and
-   * how many times a task is put on hold in a correct run of richards.
-   * They don't have any meaning a such but are characteristic of a
-   * correct run so if the actual queue or hold count is different from
-   * the expected there must be a bug in the implementation.
+  /** These two constants specify how many times a packet is queued and
+   *  how many times a task is put on hold in a correct run of richards.
+   *  They don't have any meaning a such but are characteristic of a
+   *  correct run so if the actual queue or hold count is different from
+   *  the expected there must be a bug in the implementation.
    */
   final val EXPECTED_QUEUE_COUNT = 2322
   final val EXPECTED_HOLD_COUNT = 928
@@ -113,10 +121,9 @@ object Richards extends org.scalajs.benchmark.Benchmark {
   final val KIND_WORK = 1
 }
 
-/**
- * A scheduler can be used to schedule a set of tasks based on their relative
- * priorities.  Scheduling is done by maintaining a list of task control blocks
- * which holds tasks and the data queue they are processing.
+/** A scheduler can be used to schedule a set of tasks based on their relative
+ *  priorities.  Scheduling is done by maintaining a list of task control blocks
+ *  which holds tasks and the data queue they are processing.
  */
 class Scheduler {
 
@@ -184,10 +191,9 @@ class Scheduler {
     }
   }
 
-  /**
-   * Block the currently executing task and return the next task control block
-   * to run.  The blocked task will not be made runnable until it is explicitly
-   * released, even if new work is added to it.
+  /** Block the currently executing task and return the next task control block
+   *  to run.  The blocked task will not be made runnable until it is explicitly
+   *  released, even if new work is added to it.
    */
   def holdCurrent(): TaskControlBlock = {
     holdCount += 1
@@ -195,20 +201,18 @@ class Scheduler {
     currentTcb.link
   }
 
-  /**
-   * Suspend the currently executing task and return the next task
-   * control block to run.
-   * If new work is added to the suspended task it will be made runnable.
+  /** Suspend the currently executing task and return the next task
+   *  control block to run.
+   *  If new work is added to the suspended task it will be made runnable.
    */
   def suspendCurrent(): TaskControlBlock = {
     currentTcb.markAsSuspended()
     currentTcb
   }
 
-  /**
-   * Add the specified packet to the end of the worklist used by the task
-   * associated with the packet and make the task runnable if it is currently
-   * suspended.
+  /** Add the specified packet to the end of the worklist used by the task
+   *  associated with the packet and make the task runnable if it is currently
+   *  suspended.
    */
   def queue(packet: Packet): TaskControlBlock = {
     val t = blocks(packet.id)
@@ -229,9 +233,8 @@ object TaskState {
   /// The task has packets left to process.
   final val RUNNABLE = 1
 
-  /**
-   * The task is not currently running. The task is not blocked as such and may
-   * be started by the scheduler.
+  /** The task is not currently running. The task is not blocked as such and may
+   *  be started by the scheduler.
    */
   final val SUSPENDED = 2
 
@@ -242,13 +245,12 @@ object TaskState {
   final val NOT_HELD = ~HELD
 }
 
-/**
- * A task control block manages a task and the queue of work packages associated
- * with it.
+/** A task control block manages a task and the queue of work packages associated
+ *  with it.
  *
- * @param id        The id of this block.
- * @param priority  The priority of this block.
- * @param queue     The queue of packages to be processed by the task.
+ *  @param id        The id of this block.
+ *  @param priority  The priority of this block.
+ *  @param queue     The queue of packages to be processed by the task.
  */
 class TaskControlBlock(val link: TaskControlBlock, val id: Int, val priority: Int, var queue: Packet, task: Task) {
 
@@ -279,7 +281,8 @@ class TaskControlBlock(val link: TaskControlBlock, val id: Int, val priority: In
     state = state | TaskState.RUNNABLE
   }
 
-  /// Runs this task, if it is ready to be run, and returns the next task to run.
+  /** Runs this task, if it is ready to be run, and returns the next task to run.
+   */
   def run(): TaskControlBlock = {
     val packet = if (state == TaskState.SUSPENDED_RUNNABLE) queue else null
     if (packet != null) {
@@ -289,10 +292,9 @@ class TaskControlBlock(val link: TaskControlBlock, val id: Int, val priority: In
     task.run(packet)
   }
 
-  /**
-   * Adds a packet to the worklist of this block's task, marks this as
-   * runnable if necessary, and returns the next runnable object to run
-   * (the one with the highest priority).
+  /** Adds a packet to the worklist of this block's task, marks this as
+   *  runnable if necessary, and returns the next runnable object to run
+   *  (the one with the highest priority).
    */
   def checkPriorityAdd(task: TaskControlBlock, packet: Packet): TaskControlBlock = {
     if (queue == null) {
@@ -309,21 +311,19 @@ class TaskControlBlock(val link: TaskControlBlock, val id: Int, val priority: In
   override def toString = s"tcb { ${task}@${state} }"
 }
 
-/**
- *  Abstract task that manipulates work packets.
+/** Abstract task that manipulates work packets.
  *
- * @param scheduler	  The scheduler that manages this task.
+ *  @param scheduler	  The scheduler that manages this task.
  */
 sealed abstract class Task(scheduler: Scheduler) {
   def run(packet: Packet): TaskControlBlock
 }
 
-/**
- * An idle task doesn't do any work itself but cycles control between the two
- * device tasks.
+/** An idle task doesn't do any work itself but cycles control between the two
+ *  device tasks.
  *
- * @param v1	  A seed value that controls how the device tasks are scheduled.
- * @param count	The number of times this task should be scheduled.
+ *  @param v1	  A seed value that controls how the device tasks are scheduled.
+ *  @param count	The number of times this task should be scheduled.
  */
 class IdleTask(scheduler: Scheduler, var v1: Int, var count: Int) extends Task(scheduler) {
 
@@ -342,9 +342,8 @@ class IdleTask(scheduler: Scheduler, var v1: Int, var count: Int) extends Task(s
 
 }
 
-/**
- * A task that suspends itself after each time it has been run to simulate
- * waiting for data from an external device.
+/** A task that suspends itself after each time it has been run to simulate
+ *  waiting for data from an external device.
  */
 class DeviceTask(scheduler: Scheduler) extends Task(scheduler) {
 
@@ -367,11 +366,10 @@ class DeviceTask(scheduler: Scheduler) extends Task(scheduler) {
 
 }
 
-/**
- * A task that manipulates work packets.
+/** A task that manipulates work packets.
  *
- * @param v1	A seed used to specify how work packets are manipulated.
- * @param v2	Another seed used to specify how work packets are manipulated.
+ *  @param v1	A seed used to specify how work packets are manipulated.
+ *  @param v2	Another seed used to specify how work packets are manipulated.
  */
 class WorkerTask(scheduler: Scheduler, var v1: Int, var v2: Int) extends Task(scheduler) {
 
@@ -397,8 +395,7 @@ class WorkerTask(scheduler: Scheduler, var v1: Int, var v2: Int) extends Task(sc
 
 }
 
-/**
- * A task that manipulates work packets and then suspends itself.
+/** A task that manipulates work packets and then suspends itself.
  */
 class HandlerTask(scheduler: Scheduler) extends Task(scheduler) {
 
@@ -436,23 +433,23 @@ class HandlerTask(scheduler: Scheduler) extends Task(scheduler) {
 
 }
 
-/**
- * A simple package of data that is manipulated by the tasks.  The exact layout
- * of the payload data carried by a packet is not importaint, and neither is the
- * nature of the work performed on packets by the tasks.
- * Besides carrying data, packets form linked lists and are hence used both as
- * data and worklists.
+/** A simple package of data that is manipulated by the tasks.  The exact layout
+ *  of the payload data carried by a packet is not importaint, and neither is the
+ *  nature of the work performed on packets by the tasks.
+ *  Besides carrying data, packets form linked lists and are hence used both as
+ *  data and worklists.
  *
- * @param link	The tail of the linked list of packets.
- * @param id	An ID for this packet.
- * @param kind	The type of this packet.
+ *  @param link	The tail of the linked list of packets.
+ *  @param id	An ID for this packet.
+ *  @param kind	The type of this packet.
  */
 class Packet(var link: Packet, var id: Int, val kind: Int) {
 
   var a1 = 0
   val a2 = new Array[Int](Richards.DATA_SIZE)
 
-  /// Add this packet to the end of a worklist, and return the worklist.
+  /** Add this packet to the end of a worklist, and return the worklist.
+   */
   def addTo(queue: Packet): Packet = {
     link = null
     if (queue == null) {

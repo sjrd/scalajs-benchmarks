@@ -23,6 +23,11 @@
 // more like a JavaScript program.
 
 
+var DeltaBlue = new BenchmarkSuite('DeltaBlue', [66118], [
+  new Benchmark('DeltaBlue', true, false, 4400, deltaBlue)
+]);
+
+
 /**
  * A JavaScript implementation of the DeltaBlue constraint-solving
  * algorithm, as described in:
@@ -41,12 +46,15 @@
 
 /* --- O b j e c t   M o d e l --- */
 
-Object.prototype.inheritsFrom = function (shuper) {
-  function Inheriter() { }
-  Inheriter.prototype = shuper.prototype;
-  this.prototype = new Inheriter();
-  this.superConstructor = shuper;
-}
+Object.defineProperty(Object.prototype, "inheritsFrom", {
+
+  value: function (shuper) {
+    function Inheriter() { }
+    Inheriter.prototype = shuper.prototype;
+    this.prototype = new Inheriter();
+    this.superConstructor = shuper;
+  }
+});
 
 function OrderedCollection() {
   this.elms = new Array();
@@ -116,12 +124,12 @@ Strength.strongest = function (s1, s2) {
 
 Strength.prototype.nextWeaker = function () {
   switch (this.strengthValue) {
-    case 0: return Strength.STONG_PREFERRED;
-    case 1: return Strength.PREFERRED;
-    case 2: return Strength.STRONG_DEFAULT;
-    case 3: return Strength.NORMAL;
-    case 4: return Strength.WEAK_DEFAULT;
-    case 5: return Strength.WEAKEST;
+    case 0: return Strength.WEAKEST;
+    case 1: return Strength.WEAK_DEFAULT;
+    case 2: return Strength.NORMAL;
+    case 3: return Strength.STRONG_DEFAULT;
+    case 4: return Strength.PREFERRED;
+    case 5: return Strength.REQUIRED;
   }
 }
 
@@ -873,6 +881,3 @@ function deltaBlue() {
   chainTest(100);
   projectionTest(100);
 }
-
-// Run the benchmark
-Benchmark.report('DeltaBlue', deltaBlue, deltaBlue);

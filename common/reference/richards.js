@@ -35,6 +35,11 @@
 // Martin Richards.
 
 
+var Richards = new BenchmarkSuite('Richards', [35302], [
+  new Benchmark("Richards", true, false, 8200, runRichards)
+]);
+
+
 /**
  * The Richards benchmark simulates the task dispatcher of an
  * operating system.
@@ -532,6 +537,3 @@ Packet.prototype.addTo = function (queue) {
 Packet.prototype.toString = function () {
   return "Packet";
 };
-
-// Run the benchmark
-Benchmark.report("Richards", runRichards, runRichards);

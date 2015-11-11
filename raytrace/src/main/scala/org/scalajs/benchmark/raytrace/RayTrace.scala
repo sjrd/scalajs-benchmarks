@@ -14,9 +14,20 @@
 // Ported from the v8 benchmark suite by Google 2012.
 // Ported from the Dart benchmark_harness to Scala.js by Jonas Fonseca 2013
 
-package org.scalajs.benchmark.tracer
+package org.scalajs.benchmark.raytrace
 
-object Tracer extends org.scalajs.benchmark.Benchmark with App {
+import org.scalajs.benchmark._
+import scalajs.js
+import scalajs.js.annotation.JSExport
+
+object RayTrace extends RayTraceApp with js.JSApp {
+
+  @JSExport
+  def main(): Unit = {
+    val benchmarks = js.Array(
+      new Benchmark("RayTrace", true, false, 600, renderScene _))
+    new BenchmarkSuite("RayTrace", js.Array(739989), benchmarks)
+  }
 
   val config = EngineConfiguration(
     imageWidth = 100,
@@ -30,10 +41,6 @@ object Tracer extends org.scalajs.benchmark.Benchmark with App {
     renderReflections = true
   )
 
-  override def prefix = "Tracer"
-
-  def run {
+  def renderScene(): Unit =
     new RenderScene().renderScene(config, null)
-  }
-
 }
