@@ -89,7 +89,7 @@ object Richards extends org.scalajs.benchmark.Benchmark {
   }
 
   final val DATA_SIZE = 4
-  final val COUNT = 1000
+  final val COUNT = 1000L
 
   /**
    * These two constants specify how many times a packet is queued and
@@ -101,16 +101,16 @@ object Richards extends org.scalajs.benchmark.Benchmark {
   final val EXPECTED_QUEUE_COUNT = 2322
   final val EXPECTED_HOLD_COUNT = 928
 
-  final val ID_IDLE = 0
-  final val ID_WORKER = 1
-  final val ID_HANDLER_A = 2
-  final val ID_HANDLER_B = 3
-  final val ID_DEVICE_A = 4
-  final val ID_DEVICE_B = 5
-  final val NUMBER_OF_IDS = 6
+  final val ID_IDLE = 0L
+  final val ID_WORKER = 1L
+  final val ID_HANDLER_A = 2L
+  final val ID_HANDLER_B = 3L
+  final val ID_DEVICE_A = 4L
+  final val ID_DEVICE_B = 5L
+  final val NUMBER_OF_IDS = 6L
 
-  final val KIND_DEVICE = 0
-  final val KIND_WORK = 1
+  final val KIND_DEVICE = 0L
+  final val KIND_WORK = 1L
 }
 
 /**
@@ -120,44 +120,44 @@ object Richards extends org.scalajs.benchmark.Benchmark {
  */
 class Scheduler {
 
-  var queueCount = 0
-  var holdCount = 0
+  var queueCount = 0L
+  var holdCount = 0L
   var currentTcb: TaskControlBlock = null
-  var currentId: Int = 0
+  var currentId: Long = 0
   var list: TaskControlBlock = null
-  val blocks = new Array[TaskControlBlock](Richards.NUMBER_OF_IDS)
+  val blocks = new Array[TaskControlBlock](Richards.NUMBER_OF_IDS.toInt)
 
   /// Add an idle task to this scheduler.
-  def addIdleTask(id: Int, priority: Int, queue: Packet, count: Int) {
+  def addIdleTask(id: Long, priority: Long, queue: Packet, count: Long) {
     addRunningTask(id, priority, queue, new IdleTask(this, 1, count))
   }
 
   /// Add a work task to this scheduler.
-  def addWorkerTask(id: Int, priority: Int, queue: Packet) {
+  def addWorkerTask(id: Long, priority: Long, queue: Packet) {
     addTask(id, priority, queue, new WorkerTask(this, Richards.ID_HANDLER_A, 0))
   }
 
   /// Add a handler task to this scheduler.
-  def addHandlerTask(id: Int, priority: Int, queue: Packet) {
+  def addHandlerTask(id: Long, priority: Long, queue: Packet) {
     addTask(id, priority, queue, new HandlerTask(this))
   }
 
   /// Add a handler task to this scheduler.
-  def addDeviceTask(id: Int, priority: Int, queue: Packet) {
+  def addDeviceTask(id: Long, priority: Long, queue: Packet) {
     addTask(id, priority, queue, new DeviceTask(this))
   }
 
   /// Add the specified task and mark it as running.
-  def addRunningTask(id: Int, priority: Int, queue: Packet, task: Task) {
+  def addRunningTask(id: Long, priority: Long, queue: Packet, task: Task) {
     addTask(id, priority, queue, task)
     currentTcb.setRunning()
   }
 
   /// Add the specified task to this scheduler.
-  def addTask(id: Int, priority: Int, queue: Packet, task: Task) {
+  def addTask(id: Long, priority: Long, queue: Packet, task: Task) {
     currentTcb = new TaskControlBlock(list, id, priority, queue, task)
     list = currentTcb
-    blocks(id) = currentTcb
+    blocks(id.toInt) = currentTcb
   }
 
   /// Execute the tasks managed by this scheduler.
@@ -174,8 +174,8 @@ class Scheduler {
   }
 
   /// Release a task that is currently blocked and return the next block to run.
-  def release(id: Int): TaskControlBlock = {
-    val tcb = blocks(id)
+  def release(id: Long): TaskControlBlock = {
+    val tcb = blocks(id.toInt)
     if (tcb == null) tcb
     else {
       tcb.markAsNotHeld()
@@ -211,7 +211,7 @@ class Scheduler {
    * suspended.
    */
   def queue(packet: Packet): TaskControlBlock = {
-    val t = blocks(packet.id)
+    val t = blocks(packet.id.toInt)
     if (t == null) t
     else {
       queueCount += 1
@@ -224,19 +224,19 @@ class Scheduler {
 
 object TaskState {
   /// The task is running and is currently scheduled.
-  final val RUNNING = 0
+  final val RUNNING = 0L
 
   /// The task has packets left to process.
-  final val RUNNABLE = 1
+  final val RUNNABLE = 1L
 
   /**
    * The task is not currently running. The task is not blocked as such and may
    * be started by the scheduler.
    */
-  final val SUSPENDED = 2
+  final val SUSPENDED = 2L
 
   /// The task is blocked and cannot be run until it is explicitly released.
-  final val HELD = 4
+  final val HELD = 4L
 
   final val SUSPENDED_RUNNABLE = SUSPENDED | RUNNABLE
   final val NOT_HELD = ~HELD
@@ -250,7 +250,7 @@ object TaskState {
  * @param priority  The priority of this block.
  * @param queue     The queue of packages to be processed by the task.
  */
-class TaskControlBlock(val link: TaskControlBlock, val id: Int, val priority: Int, var queue: Packet, task: Task) {
+class TaskControlBlock(val link: TaskControlBlock, val id: Long, val priority: Long, var queue: Packet, task: Task) {
 
   var state = if (queue == null) TaskState.SUSPENDED else TaskState.SUSPENDED_RUNNABLE
 
@@ -325,7 +325,7 @@ sealed abstract class Task(scheduler: Scheduler) {
  * @param v1	  A seed value that controls how the device tasks are scheduled.
  * @param count	The number of times this task should be scheduled.
  */
-class IdleTask(scheduler: Scheduler, var v1: Int, var count: Int) extends Task(scheduler) {
+class IdleTask(scheduler: Scheduler, var v1: Long, var count: Long) extends Task(scheduler) {
 
   def run(packet: Packet): TaskControlBlock = {
     count -= 1
@@ -373,7 +373,7 @@ class DeviceTask(scheduler: Scheduler) extends Task(scheduler) {
  * @param v1	A seed used to specify how work packets are manipulated.
  * @param v2	Another seed used to specify how work packets are manipulated.
  */
-class WorkerTask(scheduler: Scheduler, var v1: Int, var v2: Int) extends Task(scheduler) {
+class WorkerTask(scheduler: Scheduler, var v1: Long, var v2: Long) extends Task(scheduler) {
 
   def run(packet: Packet): TaskControlBlock = {
     if (packet == null) {
@@ -420,7 +420,7 @@ class HandlerTask(scheduler: Scheduler) extends Task(scheduler) {
         if (v2 != null) {
           val v = v2
           v2 = v2.link
-          v.a1 = v1.a2(count)
+          v.a1 = v1.a2(count.toInt)
           v1.a1 = count + 1
           return scheduler.queue(v)
         }
@@ -447,10 +447,10 @@ class HandlerTask(scheduler: Scheduler) extends Task(scheduler) {
  * @param id	An ID for this packet.
  * @param kind	The type of this packet.
  */
-class Packet(var link: Packet, var id: Int, val kind: Int) {
+class Packet(var link: Packet, var id: Long, val kind: Long) {
 
-  var a1 = 0
-  val a2 = new Array[Int](Richards.DATA_SIZE)
+  var a1 = 0L
+  val a2 = new Array[Long](Richards.DATA_SIZE)
 
   /// Add this packet to the end of a worklist, and return the worklist.
   def addTo(queue: Packet): Packet = {
