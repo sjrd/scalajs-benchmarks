@@ -74,3 +74,12 @@ lazy val tracer = project.
     moduleName := "tracer"
   ).
   dependsOn(common)
+
+lazy val sha512 = project.
+  enablePlugins(ScalaJSPlugin).
+  settings(defaultSettings: _*).
+  settings(
+    name := s"Scala.js Benchmarks - SHA-512",
+    moduleName := "sha512"
+  ).
+  dependsOn(common)
