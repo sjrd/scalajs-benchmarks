@@ -10,13 +10,29 @@
 
 package org.scalajs.benchmark.sudoku
 
+import org.scalajs.benchmark._
+
 import scala.language.implicitConversions
+import scala.scalajs.js.annotation.JSExport
 
-object Sudoku extends org.scalajs.benchmark.Benchmark {
+object RunDeltaBlue extends scalajs.js.JSApp {
+  @JSExport
+  def main(): Unit = {
+    new Sudoku
+    BenchmarkSuite.runSuites()
+  }
+}
 
-  override def prefix = "Sudoku"
+class Sudoku extends BenchmarkSuite {
 
-  def run {
+  override def name = "Sudoku"
+
+
+  def reference: Array[Int] = Array(242324)
+
+  def benchmarks: Array[Benchmark] = Array(new Benchmark("Sudoku", true, false, 800, run))
+
+  def run(): Unit = {
     solve(grid1) match {
       case Some(values) =>
         if (!grid1Solutions.contains(asString(values)))

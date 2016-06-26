@@ -27,7 +27,7 @@ lazy val parent = project.in(file(".")).
     deltablue,
     richards,
     sudoku,
-    tracer
+    raytrace
   )
 
 lazy val common = project.
@@ -66,11 +66,11 @@ lazy val sudoku = project.
   ).
   dependsOn(common)
 
-lazy val tracer = project.
+lazy val raytrace = project.
   enablePlugins(ScalaJSPlugin).
   settings(defaultSettings: _*).
   settings(
-    name := s"Scala.js Benchmarks - Tracer",
-    moduleName := "tracer"
+    name := s"Scala.js Benchmarks - Ray Trace",
+    moduleName := "raytrace"
   ).
   dependsOn(common)

@@ -30,28 +30,37 @@
 
 package org.scalajs.benchmark.deltablue
 
-/**
- * A Scala implementation of the DeltaBlue constraint-solving
- * algorithm, as described in:
+/** A Scala implementation of the DeltaBlue constraint-solving
+ *  algorithm, as described in:
  *
- * "The DeltaBlue Algorithm: An Incremental Constraint Hierarchy Solver"
- *   Bjorn N. Freeman-Benson and John Maloney
- *   January 1990 Communications of the ACM,
- *   also available as University of Washington TR 89-08-06.
+ *  "The DeltaBlue Algorithm: An Incremental Constraint Hierarchy Solver"
+ *    Bjorn N. Freeman-Benson and John Maloney
+ *    January 1990 Communications of the ACM,
+ *    also available as University of Washington TR 89-08-06.
  *
- * Beware: this benchmark is written in a grotesque style where
- * the constraint model is built by side-effects from constructors.
- * I've kept it this way to avoid deviating too much from the original
- * implementation.
+ *  Beware: this benchmark is written in a grotesque style where
+ *  the constraint model is built by side-effects from constructors.
+ *  I've kept it this way to avoid deviating too much from the original
+ *  implementation.
  */
+
+import org.scalajs.benchmark._
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Stack}
 
-object DeltaBlue extends org.scalajs.benchmark.Benchmark {
+import scalajs.js
+import scalajs.js.annotation.JSExport
 
-  override def prefix = "DeltaBlue"
+object DeltaBlue extends js.JSApp {
 
-  def run {
+  @JSExport
+  def main(): Unit = {
+    val benchmarks = js.Array(
+        new Benchmark("DeltaBlue", true, false, 4400, deltaBlue _))
+    new BenchmarkSuite("DeltaBlue", js.Array(66118), benchmarks)
+  }
+
+  def deltaBlue(): Unit = {
     chainTest(100)
     projectionTest(100)
   }
@@ -95,11 +104,10 @@ object DeltaBlue extends org.scalajs.benchmark.Benchmark {
     }
   }
 
-  /**
-   * This test constructs a two sets of variables related to each
-   * other by a simple linear transformation (scale and offset). The
-   * time is measured to change a variable on either side of the
-   * mapping and to change the scale and offset factors.
+  /** This test constructs a two sets of variables related to each
+   *  other by a simple linear transformation (scale and offset). The
+   *  time is measured to change a variable on either side of the
+   *  mapping and to change the scale and offset factors.
    */
   def projectionTest(n: Int) {
     implicit val planner = new Planner()
@@ -141,11 +149,10 @@ object DeltaBlue extends org.scalajs.benchmark.Benchmark {
   }
 }
 
-/**
- * Strengths are used to measure the relative importance of constraints.
- * New strengths may be inserted in the strength hierarchy without
- * disrupting current constraints.  Strengths cannot be created outside
- * this class, so == can be used for value comparison.
+/** Strengths are used to measure the relative importance of constraints.
+ *  New strengths may be inserted in the strength hierarchy without
+ *  disrupting current constraints.  Strengths cannot be created outside
+ *  this class, so == can be used for value comparison.
  */
 sealed class Strength(val value: Int, val name: String) {
   def nextWeaker = value match {
@@ -166,7 +173,8 @@ case object NORMAL           extends Strength(4, "normal")
 case object WEAK_DEFAULT     extends Strength(5, "weakDefault")
 case object WEAKEST          extends Strength(6, "weakest")
 
-// Compile time computed constants.
+/** Compile time computed constants.
+ */
 object Strength {
 
   def stronger(s1: Strength, s2: Strength): Boolean =
@@ -201,12 +209,11 @@ abstract class Constraint(val strength: Strength)(implicit planner: Planner) {
     planner.incrementalAdd(this)
   }
 
-  /**
-   * Attempt to find a way to enforce this constraint. If successful,
-   * record the solution, perhaps modifying the current dataflow
-   * graph. Answer the constraint that this constraint overrides, if
-   * there is one, or nil, if there isn't.
-   * Assume: I am not already satisfied.
+  /** Attempt to find a way to enforce this constraint. If successful,
+   *  record the solution, perhaps modifying the current dataflow
+   *  graph. Answer the constraint that this constraint overrides, if
+   *  there is one, or nil, if there isn't.
+   *  Assume: I am not already satisfied.
    */
   def satisfy(mark: Int): Constraint = {
     chooseMethod(mark)
@@ -235,16 +242,14 @@ abstract class Constraint(val strength: Strength)(implicit planner: Planner) {
     removeFromGraph()
   }
 
-  /**
-   * Normal constraints are not input constraints.  An input constraint
-   * is one that depends on external state, such as the mouse, the
-   * keybord, a clock, or some arbitraty piece of imperative code.
+  /** Normal constraints are not input constraints.  An input constraint
+   *  is one that depends on external state, such as the mouse, the
+   *  keybord, a clock, or some arbitraty piece of imperative code.
    */
   def isInput = false
 }
 
-/**
- * Abstract superclass for constraints having a single possible output variable.
+/** Abstract superclass for constraints having a single possible output variable.
  */
 abstract class UnaryConstraint(myOutput: Variable, strength: Strength)(implicit planner: Planner) extends Constraint(strength) {
 
@@ -252,32 +257,35 @@ abstract class UnaryConstraint(myOutput: Variable, strength: Strength)(implicit 
 
   addConstraint()
 
-  /// Adds this constraint to the constraint graph
+  /** Adds this constraint to the constraint graph
+   */
   def addToGraph() {
     myOutput.addConstraint(this)
     satisfied = false
   }
 
-  /// Decides if this constraint can be satisfied and records that decision.
+  /** Decides if this constraint can be satisfied and records that decision.
+   */
   def chooseMethod(mark: Int) {
     satisfied = (myOutput.mark != mark) &&
       Strength.stronger(strength, myOutput.walkStrength)
   }
 
-  /// Returns true if this constraint is satisfied in the current solution.
+  /** Returns true if this constraint is satisfied in the current solution.
+   */
   def isSatisfied() = satisfied
 
   def markInputs(mark: Int) {
     // has no inputs.
   }
 
-  /// Returns the current output variable.
+  /** Returns the current output variable.
+   */
   def output() = myOutput
 
-  /**
-   * Calculate the walkabout strength, the stay flag, and, if it is
-   * 'stay', the value for the current output of this constraint. Assume
-   * this constraint is satisfied.
+  /** Calculate the walkabout strength, the stay flag, and, if it is
+   *  'stay', the value for the current output of this constraint. Assume
+   *  this constraint is satisfied.
    */
   def recalculate() {
     myOutput.walkStrength = strength
@@ -285,7 +293,8 @@ abstract class UnaryConstraint(myOutput: Variable, strength: Strength)(implicit 
     if (myOutput.stay) execute(); // Stay optimization.
   }
 
-  /// Records that this constraint is unsatisfied.
+  /** Records that this constraint is unsatisfied.
+   */
   def markUnsatisfied() {
     satisfied = false
   }
@@ -298,11 +307,10 @@ abstract class UnaryConstraint(myOutput: Variable, strength: Strength)(implicit 
   }
 }
 
-/**
- * Variables that should, with some level of preference, stay the same.
- * Planners may exploit the fact that instances, if satisfied, will not
- * change their output during plan execution.  This is called "stay
- * optimization".
+/** Variables that should, with some level of preference, stay the same.
+ *  Planners may exploit the fact that instances, if satisfied, will not
+ *  change their output during plan execution.  This is called "stay
+ *  optimization".
  */
 class StayConstraint(v: Variable, str: Strength)(implicit planner: Planner) extends UnaryConstraint(v, str) {
   def execute() {
@@ -310,9 +318,8 @@ class StayConstraint(v: Variable, str: Strength)(implicit planner: Planner) exte
   }
 }
 
-/**
- * A unary input constraint used to mark a variable that the client
- * wishes to change.
+/** A unary input constraint used to mark a variable that the client
+ *  wishes to change.
  */
 class EditConstraint(v: Variable, str: Strength)(implicit planner: Planner) extends UnaryConstraint(v, str) {
 
@@ -330,9 +337,8 @@ object Direction {
   final val BACKWARD = 0
 }
 
-/**
- * Abstract superclass for constraints having two possible output
- * variables.
+/** Abstract superclass for constraints having two possible output
+ *  variables.
  */
 abstract class BinaryConstraint(v1: Variable, v2: Variable, strength: Strength)(implicit planner: Planner) extends Constraint(strength) {
 
@@ -340,10 +346,9 @@ abstract class BinaryConstraint(v1: Variable, v2: Variable, strength: Strength)(
 
   addConstraint()
 
-  /**
-   * Decides if this constraint can be satisfied and which way it
-   * should flow based on the relative strength of the variables related,
-   * and record that decision.
+  /** Decides if this constraint can be satisfied and which way it
+   *  should flow based on the relative strength of the variables related,
+   *  and record that decision.
    */
   def chooseMethod(mark: Int) {
     if (v1.mark == mark) {
@@ -375,31 +380,35 @@ abstract class BinaryConstraint(v1: Variable, v2: Variable, strength: Strength)(
     }
   }
 
-  /// Add this constraint to the constraint graph.
+  /** Add this constraint to the constraint graph.
+   */
   override def addToGraph() {
     v1.addConstraint(this)
     v2.addConstraint(this)
     direction = Direction.NONE
   }
 
-  /// Answer true if this constraint is satisfied in the current solution.
+  /** Answer true if this constraint is satisfied in the current solution.
+   */
   def isSatisfied() = direction != Direction.NONE
 
-  /// Mark the input variable with the given mark.
+  /** Mark the input variable with the given mark.
+   */
   def markInputs(mark: Int) {
     input().mark = mark
   }
 
-  /// Returns the current input variable
+  /** Returns the current input variable
+   */
   def input() = if (direction == Direction.FORWARD) v1 else v2
 
-  /// Returns the current output variable.
+  /** Returns the current output variable.
+   */
   def output() = if (direction == Direction.FORWARD) v2 else v1
 
-  /**
-   * Calculate the walkabout strength, the stay flag, and, if it is
-   * 'stay', the value for the current output of this
-   * constraint. Assume this constraint is satisfied.
+  /** Calculate the walkabout strength, the stay flag, and, if it is
+   *  'stay', the value for the current output of this
+   *  constraint. Assume this constraint is satisfied.
    */
   def recalculate() {
     val ihn = input()
@@ -409,7 +418,8 @@ abstract class BinaryConstraint(v1: Variable, v2: Variable, strength: Strength)(
     if (out.stay) execute()
   }
 
-  /// Record the fact that this constraint is unsatisfied.
+  /** Record the fact that this constraint is unsatisfied.
+   */
   def markUnsatisfied() {
     direction = Direction.NONE
   }
@@ -426,18 +436,17 @@ abstract class BinaryConstraint(v1: Variable, v2: Variable, strength: Strength)(
   }
 }
 
-/**
- * Relates two variables by the linear scaling relationship: "v2 =
- * (v1 * scale) + offset". Either v1 or v2 may be changed to maintain
- * this relationship but the scale factor and offset are considered
- * read-only.
+/** Relates two variables by the linear scaling relationship: "v2 =
+ *  (v1 * scale) + offset". Either v1 or v2 may be changed to maintain
+ *  this relationship but the scale factor and offset are considered
+ *  read-only.
  */
-
 class ScaleConstraint(v1: Variable, scale: Variable, offset: Variable,
                       v2: Variable, strength: Strength)(implicit planner: Planner)
     extends BinaryConstraint(v1, v2, strength) {
 
-  /// Adds this constraint to the constraint graph.
+  /** Adds this constraint to the constraint graph.
+   */
   override def addToGraph() {
     super.addToGraph()
     scale.addConstraint(this)
@@ -456,7 +465,8 @@ class ScaleConstraint(v1: Variable, scale: Variable, offset: Variable,
     offset.mark = mark
   }
 
-  /// Enforce this constraint. Assume that it is satisfied.
+  /** Enforce this constraint. Assume that it is satisfied.
+   */
   def execute() {
     if (direction == Direction.FORWARD) {
       v2.value = v1.value * scale.value + offset.value
@@ -466,10 +476,9 @@ class ScaleConstraint(v1: Variable, scale: Variable, offset: Variable,
     }
   }
 
-  /**
-   * Calculate the walkabout strength, the stay flag, and, if it is
-   * 'stay', the value for the current output of this constraint. Assume
-   * this constraint is satisfied.
+  /** Calculate the walkabout strength, the stay flag, and, if it is
+   *  'stay', the value for the current output of this constraint. Assume
+   *  this constraint is satisfied.
    */
   override def recalculate() {
     val ihn = input()
@@ -481,8 +490,7 @@ class ScaleConstraint(v1: Variable, scale: Variable, offset: Variable,
 
 }
 
-/**
- * Constrains two variables to have the same value.
+/** Constrains two variables to have the same value.
  */
 class EqualityConstraint(v1: Variable, v2: Variable, strength: Strength)(implicit planner: Planner) extends BinaryConstraint(v1, v2, strength) {
   /// Enforce this constraint. Assume that it is satisfied.
@@ -491,11 +499,10 @@ class EqualityConstraint(v1: Variable, v2: Variable, strength: Strength)(implici
   }
 }
 
-/**
- * A constrained variable. In addition to its value, it maintain the
- * structure of the constraint graph, the current dataflow graph, and
- * various parameters of interest to the DeltaBlue incremental
- * constraint solver.
+/** A constrained variable. In addition to its value, it maintain the
+ *  structure of the constraint graph, the current dataflow graph, and
+ *  various parameters of interest to the DeltaBlue incremental
+ *  constraint solver.
  */
 class Variable(val name: String, var value: Int) {
 
@@ -513,7 +520,8 @@ class Variable(val name: String, var value: Int) {
     constraints += c
   }
 
-  /// Removes all traces of c from this variable.
+  /** Removes all traces of c from this variable.
+   */
   def removeConstraint(c: Constraint) {
     constraints -= c
     if (determinedBy == c) determinedBy = null
@@ -524,19 +532,18 @@ class Planner {
 
   var currentMark = 0
 
-  /**
-   * Attempt to satisfy the given constraint and, if successful,
-   * incrementally update the dataflow graph.  Details: If satifying
-   * the constraint is successful, it may override a weaker constraint
-   * on its output. The algorithm attempts to resatisfy that
-   * constraint using some other method. This process is repeated
-   * until either a) it reaches a variable that was not previously
-   * determined by any constraint or b) it reaches a constraint that
-   * is too weak to be satisfied using any of its methods. The
-   * variables of constraints that have been processed are marked with
-   * a unique mark value so that we know where we've been. This allows
-   * the algorithm to avoid getting into an infinite loop even if the
-   * constraint graph has an inadvertent cycle.
+  /** Attempt to satisfy the given constraint and, if successful,
+   *  incrementally update the dataflow graph.  Details: If satifying
+   *  the constraint is successful, it may override a weaker constraint
+   *  on its output. The algorithm attempts to resatisfy that
+   *  constraint using some other method. This process is repeated
+   *  until either a) it reaches a variable that was not previously
+   *  determined by any constraint or b) it reaches a constraint that
+   *  is too weak to be satisfied using any of its methods. The
+   *  variables of constraints that have been processed are marked with
+   *  a unique mark value so that we know where we've been. This allows
+   *  the algorithm to avoid getting into an infinite loop even if the
+   *  constraint graph has an inadvertent cycle.
    */
   def incrementalAdd(c: Constraint) {
     val mark = newMark()
@@ -545,16 +552,15 @@ class Planner {
       overridden = overridden.satisfy(mark)
   }
 
-  /**
-   * Entry point for retracting a constraint. Remove the given
-   * constraint and incrementally update the dataflow graph.
-   * Details: Retracting the given constraint may allow some currently
-   * unsatisfiable downstream constraint to be satisfied. We therefore collect
-   * a list of unsatisfied downstream constraints and attempt to
-   * satisfy each one in turn. This list is traversed by constraint
-   * strength, strongest first, as a heuristic for avoiding
-   * unnecessarily adding and then overriding weak constraints.
-   * Assume: [c] is satisfied.
+  /** Entry point for retracting a constraint. Remove the given
+   *  constraint and incrementally update the dataflow graph.
+   *  Details: Retracting the given constraint may allow some currently
+   *  unsatisfiable downstream constraint to be satisfied. We therefore collect
+   *  a list of unsatisfied downstream constraints and attempt to
+   *  satisfy each one in turn. This list is traversed by constraint
+   *  strength, strongest first, as a heuristic for avoiding
+   *  unnecessarily adding and then overriding weak constraints.
+   *  Assume: [c] is satisfied.
    */
   def incrementalRemove(c: Constraint) {
     val out = c.output()
@@ -570,30 +576,30 @@ class Planner {
     } while (strength != WEAKEST)
   }
 
-  /// Select a previously unused mark value.
+  /** Select a previously unused mark value.
+   */
   def newMark(): Int = {
     currentMark += 1
     currentMark
   }
 
-  /**
-   * Extract a plan for resatisfaction starting from the given source
-   * constraints, usually a set of input constraints. This method
-   * assumes that stay optimization is desired; the plan will contain
-   * only constraints whose output variables are not stay. Constraints
-   * that do no computation, such as stay and edit constraints, are
-   * not included in the plan.
-   * Details: The outputs of a constraint are marked when it is added
-   * to the plan under construction. A constraint may be appended to
-   * the plan when all its input variables are known. A variable is
-   * known if either a) the variable is marked (indicating that has
-   * been computed by a constraint appearing earlier in the plan), b)
-   * the variable is 'stay' (i.e. it is a constant at plan execution
-   * time), or c) the variable is not determined by any
-   * constraint. The last provision is for past states of history
-   * variables, which are not stay but which are also not computed by
-   * any constraint.
-   * Assume: [sources] are all satisfied.
+  /** Extract a plan for resatisfaction starting from the given source
+   *  constraints, usually a set of input constraints. This method
+   *  assumes that stay optimization is desired; the plan will contain
+   *  only constraints whose output variables are not stay. Constraints
+   *  that do no computation, such as stay and edit constraints, are
+   *  not included in the plan.
+   *  Details: The outputs of a constraint are marked when it is added
+   *  to the plan under construction. A constraint may be appended to
+   *  the plan when all its input variables are known. A variable is
+   *  known if either a) the variable is marked (indicating that has
+   *  been computed by a constraint appearing earlier in the plan), b)
+   *  the variable is 'stay' (i.e. it is a constant at plan execution
+   *  time), or c) the variable is not determined by any
+   *  constraint. The last provision is for past states of history
+   *  variables, which are not stay but which are also not computed by
+   *  any constraint.
+   *  Assume: [sources] are all satisfied.
    */
   def makePlan(sources: Stack[Constraint]) = {
     val mark = newMark()
@@ -610,9 +616,8 @@ class Planner {
     plan
   }
 
-  /**
-   * Extract a plan for resatisfying starting from the output of the
-   * given [constraints], usually a set of input constraints.
+  /** Extract a plan for resatisfying starting from the output of the
+   *  given [constraints], usually a set of input constraints.
    */
   def extractPlanFromConstraints(constraints: Seq[Constraint]) = {
     val sources = new Stack[Constraint]()
@@ -623,18 +628,17 @@ class Planner {
     makePlan(sources)
   }
 
-  /**
-   * Recompute the walkabout strengths and stay flags of all variables
-   * downstream of the given constraint and recompute the actual
-   * values of all variables whose stay flag is true. If a cycle is
-   * detected, remove the given constraint and answer
-   * false. Otherwise, answer true.
-   * Details: Cycles are detected when a marked variable is
-   * encountered downstream of the given constraint. The sender is
-   * assumed to have marked the inputs of the given constraint with
-   * the given mark. Thus, encountering a marked node downstream of
-   * the output constraint means that there is a path from the
-   * constraint's output to one of its inputs.
+  /** Recompute the walkabout strengths and stay flags of all variables
+   *  downstream of the given constraint and recompute the actual
+   *  values of all variables whose stay flag is true. If a cycle is
+   *  detected, remove the given constraint and answer
+   *  false. Otherwise, answer true.
+   *  Details: Cycles are detected when a marked variable is
+   *  encountered downstream of the given constraint. The sender is
+   *  assumed to have marked the inputs of the given constraint with
+   *  the given mark. Thus, encountering a marked node downstream of
+   *  the output constraint means that there is a path from the
+   *  constraint's output to one of its inputs.
    */
   def addPropagate(c: Constraint, mark: Int): Boolean = {
     val todo = new Stack[Constraint]().push(c)
@@ -650,10 +654,9 @@ class Planner {
     true
   }
 
-  /**
-   * Update the walkabout strengths and stay flags of all variables
-   * downstream of the given constraint. Answer a collection of
-   * unsatisfied constraints sorted in order of decreasing strength.
+  /** Update the walkabout strengths and stay flags of all variables
+   *  downstream of the given constraint. Answer a collection of
+   *  unsatisfied constraints sorted in order of decreasing strength.
    */
   def removePropagateFrom(out: Variable): Seq[Constraint] = {
     out.determinedBy = null
@@ -685,10 +688,9 @@ class Planner {
   }
 }
 
-/**
- * A Plan is an ordered list of constraints to be executed in sequence
- * to resatisfy all currently satisfiable constraints in the face of
- * one or more changing inputs.
+/** A Plan is an ordered list of constraints to be executed in sequence
+ *  to resatisfy all currently satisfiable constraints in the face of
+ *  one or more changing inputs.
  */
 class Plan {
   private val list = new ListBuffer[Constraint]()

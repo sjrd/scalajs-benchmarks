@@ -6,12 +6,12 @@
 **                          |/____/                                     **
 \*                                                                      */
 
-package org.scalajs.benchmark.tracer
+package org.scalajs.benchmark.raytrace
 
 import org.scalajs.benchmark.dom._
 import scala.scalajs.js
 
-trait App extends org.scalajs.benchmark.BenchmarkApp {
+trait RayTraceApp extends org.scalajs.benchmark.BenchmarkApp {
 
   def onClick() {
     val config = new EngineConfiguration(
