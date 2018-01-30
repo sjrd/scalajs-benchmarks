@@ -1,4 +1,5 @@
-import org.scalajs.core.tools.linker.CheckedBehavior.Unchecked
+//import org.scalajs.core.tools.linker.CheckedBehavior.Unchecked
+import org.scalajs.linker.CheckedBehavior.Unchecked
 
 val projectSettings: Seq[Setting[_]] = Seq(
   organization := "scalajs-benchmarks",
@@ -6,7 +7,7 @@ val projectSettings: Seq[Setting[_]] = Seq(
 )
 
 val defaultSettings: Seq[Setting[_]] = projectSettings ++ Seq(
-  scalaVersion := "2.11.11",
+  scalaVersion := "2.12.4",
   scalacOptions ++= Seq(
       "-deprecation",
       "-unchecked",
