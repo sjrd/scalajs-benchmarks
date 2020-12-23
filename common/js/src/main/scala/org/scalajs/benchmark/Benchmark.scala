@@ -71,8 +71,17 @@ abstract class Benchmark {
   }
 
   def main(args: Array[String]): Unit = {
-    if (js.typeOf(js.Dynamic.global.window) == "undefined")
-      println(report())
+    if (js.typeOf(js.Dynamic.global.window) == "undefined") {
+      val result = report()
+      println(result)
+
+      if (js.typeOf(js.Dynamic.global.require) == "function") {
+        val fs = js.Dynamic.global.require("fs")
+        val name = reportConfig().takeWhile(Character.isLetterOrDigit(_))
+        val fileName = s"./devirtualized-$name.csv"
+        fs.appendFileSync(fileName, result + "\n")
+      }
+    }
   }
 
   def mainHTML(): Unit = {
@@ -123,7 +132,7 @@ abstract class Benchmark {
   /** Run the benchmark the specified number of milliseconds and return
    *  the mean execution time and SEM in microseconds.
    */
-  def runBenchmark(timeMinimum: Long, runsMinimum: Int): (Double, Double) = {
+  def runBenchmark(timeMinimum: Long, runsMinimum: Int): Array[Double] = {
     var runs = 0
     var enoughTime = false
     val stopTime = performanceTime() + timeMinimum
@@ -139,7 +148,8 @@ abstract class Benchmark {
       enoughTime = endTime >= stopTime
     } while (!enoughTime || runs < runsMinimum)
 
-    meanAndSEM(samples.result())
+    //meanAndSEM(samples.result())
+    samples.result()
   }
 
   private def meanAndSEM(samples: Array[Double]): (Double, Double) = {
@@ -178,18 +188,24 @@ abstract class Benchmark {
     runBenchmark(1000, 10)
   }
 
-  def report(): String = {
+  def reportConfig(): String = {
     import js.Dynamic.{global => g}
 
+    val reportPrefix =
+      if (js.typeOf(g.ScalaJSBenchmarkPrefix) != "string") prefix + "-"
+      else g.ScalaJSBenchmarkPrefix.asInstanceOf[String]
+    reportPrefix + Benchmark.userAgent
+  }
+
+  def report(): String = {
     setUp()
     warmUp()
-    val (mean, sem) = runBenchmark(3000, 20)
+    //val (mean, sem) = runBenchmark(3000, 20)
+    val results = runBenchmark(3000, 20)
     tearDown()
 
-    val reportPrefix =
-      if (js.typeOf(g.ScalaJSBenchmarkPrefix) != "string") prefix + ": "
-      else g.ScalaJSBenchmarkPrefix.asInstanceOf[String]
+    //s"$reportPrefix${Benchmark.userAgent};$mean;$sem"
 
-    s"$reportPrefix${Benchmark.userAgent};$mean;$sem"
+    results.map(r => s"${reportConfig()};$r").mkString("\n")
   }
 }
