@@ -156,7 +156,8 @@ lazy val allProjects = Seq(
     jsonJVM, jsonJS,
     listJVM, listJS,
     nbodyJVM, nbodyJS,
-    queensJVM, queensJS
+    queensJVM, queensJS,
+    bigNumbersJVM, bigNumbersJS
 )
 
 lazy val common = crossProject(JSPlatform, JVMPlatform).
@@ -327,3 +328,7 @@ lazy val nbodyJS = nbody.js
 lazy val queens = autoConfig(crossProject(JSPlatform, JVMPlatform))
 lazy val queensJVM = queens.jvm
 lazy val queensJS = queens.js
+
+lazy val bigNumbers = autoConfig(crossProject(JSPlatform, JVMPlatform))
+lazy val bigNumbersJVM = bigNumbers.jvm
+lazy val bigNumbersJS = bigNumbers.js
