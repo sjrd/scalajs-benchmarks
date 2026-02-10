@@ -15,11 +15,14 @@ object LongMicroAll extends org.scalajs.benchmark.Benchmark {
       LongAdd,
       LongMul,
       LongDiv32_32,
+      LongDiv32_28,
       LongDiv32_8,
       LongDiv53_53,
+      LongDiv53_49,
       LongDiv53_8,
       LongDiv64_Pow2,
       LongDiv64_64,
+      LongDiv64_60,
       LongDiv64_8,
       LongConstantDivAddBaseline,
       LongSignedConstantDiv,
@@ -153,6 +156,109 @@ object LongMicroDataSets {
       0x59092e3d49691801L
   )
 
+  val random60s = Array[Long](
+      0x4f5b188d680addbL,
+      0xfaa510d361001425L,
+      0xfd33da7e04f9401cL,
+      0xf82cc6619f8e536fL,
+      0xfaba1877a52151c9L,
+      0x5856701b4b198f3L,
+      0xfed68d8d0a5b88caL,
+      0x69320483fcb7814L,
+      0x6a0d0677f371b03L,
+      0x360dbbdd6e0001bL,
+      0xffd9053b1f3b136dL,
+      0xfa6e9f5bf973d562L,
+      0xf858408c2d3e5040L,
+      0x6f9ef177a52c2fL,
+      0x1ee8a53aacc35e5L,
+      0x75ace1750dd52cL,
+      0x2173058302f3ac2L,
+      0x1e31b2879064360L,
+      0x7e058bc71ac64a3L,
+      0xfe31393cfba4ba5fL,
+      0x19d286677b47df7L,
+      0x3d1bee49c4d3b9aL,
+      0x653fdc694f62329L,
+      0x21d0c729959d5caL,
+      0xfe6fda208680bf98L,
+      0x572bdbe1a27fde0L,
+      0xffd49a53f22cd753L,
+      0xf8095d9a4cac61d7L,
+      0x6314688d545cbacL,
+      0x59029a522f5058L,
+      0x5957ef79d4f3634L,
+      0xfb6b748e2870a0c3L,
+      0xf84251c6c3240ebbL,
+      0x222e4e4957a01a2L,
+      0xfcebbfd16796de64L,
+      0x50b935432ce1a22L,
+      0xfed45c48edf98d35L,
+      0xfe8b936e3e40a849L,
+      0xfbf2a895b154302dL,
+      0x5aaedff49dc6f77L,
+      0x57b5be2a79a4efcL,
+      0xfd16838538798d48L,
+      0xf9aaa2f7fa4f226bL,
+      0x3c33afa8e0bdd44L,
+      0x56071d8e06503c1L,
+      0xffae10d909ea6d40L,
+      0xffd53865cb5c8a7aL,
+      0xfb628012a5630cf0L,
+      0xfdacad84a1fe6847L,
+      0x2a3ab9ead917d95L,
+      0x1a0841a08e579c2L,
+      0xfaf8e7c367dc4d8eL,
+      0xfb0e92027871ab70L,
+      0xfd0af08109257439L,
+      0x5f6450cb28d18c2L,
+      0xfd7b6b5cec0925aeL,
+      0xf96affa4e43cfcacL,
+      0xfde05391f33ef10bL,
+      0x29dc156784efc5fL,
+      0x4fe442649bfb627L,
+      0xffdff74a68d2a837L,
+      0xfeb598c8160b5d0dL,
+      0xa4f92e93140ef9L,
+      0x6fd547eb2947219L,
+      0x21ba3686071c291L,
+      0xfeee2adc7de9794dL,
+      0xfd3402120042e8cdL,
+      0xfc21b8111ae69d77L,
+      0xfb7a0fad5de1563cL,
+      0xfc51ec0a7dd03fe9L,
+      0xfdddb3ce4b94a05cL,
+      0xf9ba44d13ffa36ecL,
+      0xfcb5dcda3f3dc875L,
+      0xfa99f1050ee81743L,
+      0xfea5fa827148ab24L,
+      0xff83303a51a620dcL,
+      0xfb7d7914e18fe80dL,
+      0xfa69c3cca19f7631L,
+      0xfe8f8a664d41b7cfL,
+      0x155a5a2687403bfL,
+      0x2401a5178734d0bL,
+      0xfc91687b31894b4fL,
+      0x420b3f844e5e44aL,
+      0x7b2869c396374ecL,
+      0xf8437d4333f83d32L,
+      0xff1a87f394ba971fL,
+      0x3901a0d466899a2L,
+      0x3cf9ccc225554f6L,
+      0x14ed449ebdbed1dL,
+      0xfa90ed630af36586L,
+      0x60ef99504d6bfb8L,
+      0xf945f7009a7a02e6L,
+      0x101452ecf4aaec2L,
+      0x8ebca315bccae9L,
+      0x73035df93dedda0L,
+      0x6a1845647247af1L,
+      0x2b71b65b7d9202dL,
+      0xf8d78929f9c051ceL,
+      0x57397887c8f4c3dL,
+      0xfe523128f9a7f8b5L
+  )
+
   val random32s = Array[Long](
       0x3d7bca72L,
       0x6e125b10L,
@@ -256,6 +362,109 @@ object LongMicroDataSets {
       0xfffffffffb8ba481L
   )
 
+  val random28s = Array[Long](
+      0x4bf407cL,
+      0x3fe6d03L,
+      0xfffffffffc395caaL,
+      0x3e670b5L,
+      0xfffffffffadb3094L,
+      0x4a3854aL,
+      0x27b0442L,
+      0xfffffffffcc7de8aL,
+      0xfffffffffad6ae63L,
+      0xfffffffff919d007L,
+      0xfffffffffa968f91L,
+      0x3cfa4f3L,
+      0x271b7e3L,
+      0xfffffffff863b631L,
+      0x2fc1dd1L,
+      0xffffffffface82a0L,
+      0x3a7f3a1L,
+      0xfffffffff84f7f61L,
+      0xfffffffffa80da12L,
+      0xfffffffffa5054d2L,
+      0xfffffffff840661aL,
+      0xffffffffffaebe33L,
+      0xffffffffff3b8d67L,
+      0xfffffffffba4cdbcL,
+      0xaadd77L,
+      0xfffffffff9ee92bdL,
+      0x3961a46L,
+      0xd1e563L,
+      0xfffffffffb56bff4L,
+      0x39b0830L,
+      0xfffffffff9b4dfb9L,
+      0xfffffffffebbff11L,
+      0x7fb8defL,
+      0x7631b31L,
+      0xffffffffff02a378L,
+      0x58af86dL,
+      0x136ac10L,
+      0xfffffffffce326bbL,
+      0x41d9d21L,
+      0x6796221L,
+      0x155a997L,
+      0xfffffffffac50936L,
+      0xfffffffff8050cf1L,
+      0x7bbf6dL,
+      0x68e77d4L,
+      0x68c526dL,
+      0x2a2cfdL,
+      0x116c4a3L,
+      0x6665ec2L,
+      0x7d2e184L,
+      0x11055efL,
+      0xffffffffffd05f6cL,
+      0xfffffffffba1eabaL,
+      0x196d836L,
+      0xfffffffffab9c352L,
+      0x5990a80L,
+      0x7b35ec7L,
+      0x6a9a34bL,
+      0xfffffffffb755173L,
+      0x463948L,
+      0xfffe16L,
+      0xfffffffffdcdaa02L,
+      0xfffffffff9b3b321L,
+      0x3336e84L,
+      0x7ace65aL,
+      0x13f12f5L,
+      0xffffffffff447470L,
+      0xfffffffff9dc5f23L,
+      0x3763734L,
+      0xaf4ceeL,
+      0x7a38222L,
+      0x714426dL,
+      0xfffffffff89ca133L,
+      0xffffffffffd9f578L,
+      0xfffffffff88b2ad5L,
+      0x17deef5L,
+      0xfffffffffed0aceeL,
+      0xf6d7dL,
+      0x53289aeL,
+      0x7ca1cf3L,
+      0x1086b23L,
+      0xfffffffffd1ba4c6L,
+      0x37eec82L,
+      0x62bcef0L,
+      0xfffffffffde9a50dL,
+      0xfffffffff88d1293L,
+      0x14cfffL,
+      0xfffffffffcef8433L,
+      0x1def34bL,
+      0xfffffffffd625c0cL,
+      0x52f2054L,
+      0x744e0afL,
+      0x45567caL,
+      0xfffffffffd7fa0f9L,
+      0xfffffffffb603ec4L,
+      0xffffffffffc52c2cL,
+      0x30c44ffL,
+      0xffffffffff707c96L,
+      0xfffffffffab1a802L,
+      0xffffffffff407af5L
+  )
+
   val random53s = Array[Long](
       0xa014b5eb2d544L,
       0xfff81ba21761c495L,
@@ -357,6 +566,109 @@ object LongMicroDataSets {
       0xfff636a8b0e10d9fL,
       0xfff53a3a57d7879dL,
       0xfffd04c9c2d2217cL
+  )
+
+  val random49s = Array[Long](
+      0xffffaadec2d217e8L,
+      0x26b0a76c736L,
+      0xffff5c2795985e20L,
+      0xffffcc86c84e340eL,
+      0xffff4709d7192bc5L,
+      0xffff51a731afe5a7L,
+      0xf7c18b8f8cc5L,
+      0xfffff82d0db13b05L,
+      0x472e1ff5030L,
+      0xffffb585f55db091L,
+      0xba799238c077L,
+      0xaca4bc25c803L,
+      0xffffac7a05ba7a65L,
+      0xe15c410618ceL,
+      0x9d9382735d2L,
+      0xffff9df99beaba86L,
+      0xffff8bbb7c82d210L,
+      0x7d03611cb0adL,
+      0x5ddcdaae707L,
+      0xbd5d44621db6L,
+      0xffff9a88d7ce065fL,
+      0x68f4a3e128fbL,
+      0xe50d71a74fc3L,
+      0xe59ddad271a7L,
+      0xffff7bd085dd2a0aL,
+      0xcf9ed3bb2fabL,
+      0xd8d435860f1aL,
+      0x2c2f17913b9aL,
+      0x5e3a7dc1cf72L,
+      0xbdbaffd3200fL,
+      0xffff71713a91331dL,
+      0xc28439f6afd6L,
+      0xffffe4932c89e45aL,
+      0xffff651e637c587cL,
+      0xff8d6a7bdf52L,
+      0xd5de021d7a1dL,
+      0xffff487899dcad1fL,
+      0xb3b65f1ac9afL,
+      0xffff172337f799cfL,
+      0xffff29278f4b09d3L,
+      0xffff65230c0ec9f2L,
+      0xfffffb7f459e3ef7L,
+      0xffffc24a9a310341L,
+      0x73fb969c308bL,
+      0xffff4c2779ac4320L,
+      0xeffa0cfcc2d6L,
+      0xffffb8289101161bL,
+      0xffff888a3e6f496dL,
+      0x15d8e8f02ed4L,
+      0xffffa862aa99a94fL,
+      0xffff0605950d7ba9L,
+      0xffff8f52d235f3e6L,
+      0x2814f9ff142bL,
+      0x86f491bc8e7L,
+      0xffff7c20b1c7e3e0L,
+      0xffff877ec2fedfa0L,
+      0x1c9c90ef1b33L,
+      0x7e96d2d53577L,
+      0xd70c38e5e03dL,
+      0xf4c7f83c5c12L,
+      0x8aff40a4d2cL,
+      0xffffea2834dc102eL,
+      0xe24c95577550L,
+      0xffff30b9a199bd84L,
+      0xffff6ebf8a4b43a0L,
+      0xa6f68ca2b1d0L,
+      0xc09aa55f83f4L,
+      0xffff396d59515e00L,
+      0xffffa831e8063f29L,
+      0x711a1d7afd97L,
+      0xfd378e370ba1L,
+      0xffffd4fc7e4af46bL,
+      0x2b391cd72bcaL,
+      0x9d780a909c5eL,
+      0xcb1cfb7eef87L,
+      0xc746d783ef07L,
+      0xa924bd5a4666L,
+      0x21b670f27e02L,
+      0xffffc6436fd42240L,
+      0xb2984ab77495L,
+      0xfc8286e089bdL,
+      0xffff1d6a6dd360c6L,
+      0xfb5f894772f8L,
+      0x58e5812dc46L,
+      0xffff0d2e6466c29fL,
+      0xffff590b25af6058L,
+      0xffffe6c95ff7b2a2L,
+      0x900d7aa3f0f9L,
+      0xfffff19be035345fL,
+      0x12583afc79afL,
+      0xb64ffa7e6fb2L,
+      0xffff63ecd3bdd5d8L,
+      0xffff8224af2e4e4cL,
+      0x3f67c3b24b23L,
+      0x9a21efcb6c8aL,
+      0x426341fce28cL,
+      0xffff6474e962c354L,
+      0x14d4d3e5a714L,
+      0x836b8d03eef7L,
+      0xffffef64ef32c6dcL
   )
 
   val random8s = Array[Long](
@@ -1298,6 +1610,17 @@ object LongDiv32_32 extends LongMicro {
   @inline def binaryOp(a: Long, b: Long): Long = a / b
 }
 
+object LongDiv32_28 extends LongMicro {
+  override def prefix = "LongDiv32_28"
+
+  def run(): Unit = {
+    if (doRun(random32s, random28s) != -1635L)
+      throw new Exception("wrong result")
+  }
+
+  @inline def binaryOp(a: Long, b: Long): Long = a / b
+}
+
 object LongDiv32_8 extends LongMicro {
   override def prefix = "LongDiv32_8"
 
@@ -1314,6 +1637,17 @@ object LongDiv53_53 extends LongMicro {
 
   def run(): Unit = {
     if (doRun(random53s, random53s) != 41L)
+      throw new Exception("wrong result")
+  }
+
+  @inline def binaryOp(a: Long, b: Long): Long = a / b
+}
+
+object LongDiv53_49 extends LongMicro {
+  override def prefix = "LongDiv53_49"
+
+  def run(): Unit = {
+    if (doRun(random53s, random49s) != 516L)
       throw new Exception("wrong result")
   }
 
@@ -1347,6 +1681,17 @@ object LongDiv64_64 extends LongMicro {
 
   def run(): Unit = {
     if (doRun(random64s, random64s) != 64L)
+      throw new Exception("wrong result")
+  }
+
+  @inline def binaryOp(a: Long, b: Long): Long = a / b
+}
+
+object LongDiv64_60 extends LongMicro {
+  override def prefix = "LongDiv64_60"
+
+  def run(): Unit = {
+    if (doRun(random64s, random60s) != -404L)
       throw new Exception("wrong result")
   }
 
