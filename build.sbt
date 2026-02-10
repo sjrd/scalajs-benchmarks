@@ -30,6 +30,8 @@ ThisBuild / scalaJSLinkerConfig := {
       .withPrettyPrint(true)
   } else {
     prev
+      .withModuleKind(ModuleKind.ESModule)
+      .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
   }
 }
 
