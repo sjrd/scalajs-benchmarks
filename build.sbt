@@ -18,6 +18,8 @@ val projectSettings: Seq[Setting[_]] = Seq(
 
 Global / enableWasmEverywhere := false
 
+ThisBuild / scalaVersion := "2.13.16"
+
 ThisBuild / scalaJSLinkerConfig := {
   val prev = (ThisBuild / scalaJSLinkerConfig).value
   if ((ThisBuild / enableWasmEverywhere).value) {
@@ -46,7 +48,6 @@ ThisBuild / jsEnv := {
 }
 
 val defaultSettings: Seq[Setting[_]] = projectSettings ++ Seq(
-  scalaVersion := "2.13.16",
   scalacOptions ++= Seq(
       "-deprecation",
       "-unchecked",
