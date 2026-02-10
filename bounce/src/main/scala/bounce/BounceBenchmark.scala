@@ -22,7 +22,7 @@
  */
 package bounce
 
-import som.Random
+import java.util.SplittableRandom
 import scala.Predef.augmentString
 import scala.Predef.intWrapper
 import scala.Predef.genericArrayOps
@@ -30,13 +30,13 @@ import scala.{Int, Boolean, Array}
 import java.lang.{Math, String}
 
 object BounceBenchmark extends communitybench.Benchmark {
-  val inputOutput: (String, String) = ("100", "1331")
+  val inputOutput: (String, String) = ("100", "1348")
 
-  private class Ball(random: Random) {
-    private var x: Int    = random.next()  % 500
-    private var y: Int    = random.next()  % 500
-    private var xVel: Int = (random.next() % 300) - 150
-    private var yVel: Int = (random.next() % 300) - 150
+  private class Ball(random: SplittableRandom) {
+    private var x: Int    = (random.nextInt() & 0xffff)  % 500
+    private var y: Int    = (random.nextInt() & 0xffff)  % 500
+    private var xVel: Int = ((random.nextInt() & 0xffff) % 300) - 150
+    private var yVel: Int = ((random.nextInt() & 0xffff) % 300) - 150
 
     def bounce(): Boolean = {
       val xLimit: Int = 500
@@ -59,7 +59,7 @@ object BounceBenchmark extends communitybench.Benchmark {
   }
 
   def run(input: String): Int = {
-    val random = new Random()
+    val random = new SplittableRandom(3590578747744481451L)
 
     val ballCount = input.toInt
     var bounces   = 0
