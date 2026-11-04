@@ -18,7 +18,7 @@ val projectSettings: Seq[Setting[_]] = Seq(
 
 Global / enableWasmEverywhere := false
 
-ThisBuild / scalaVersion := "2.13.17"
+ThisBuild / scalaVersion := "2.13.18"
 
 ThisBuild / scalaJSLinkerConfig := {
   val prev = (ThisBuild / scalaJSLinkerConfig).value
