@@ -89,6 +89,11 @@ def esVersionToString(esVersion: ESVersion): String = esVersion match {
   case ESVersion.ES2019 => "es2019"
   case ESVersion.ES2020 => "es2020"
   case ESVersion.ES2021 => "es2021"
+  case ESVersion.ES2022 => "es2022"
+  case ESVersion.ES2023 => "es2023"
+  case ESVersion.ES2024 => "es2024"
+  case ESVersion.ES2025 => "es2025"
+  case ESVersion.ES2026 => "es2026"
 }
 
 val defaultJSSettings: Seq[Setting[_]] = Def.settings(
